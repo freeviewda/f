@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      #canvas {
+        position: relative;
+        width: 700px;
+        height: 700px;
+        border: 1px solid black;
+      }
+
+      .rectangle {
+        position: absolute;
+        border: 1px solid blue;
+        cursor: pointer;
+      }
+
+      .coordinates {
+        position: absolute;
+        font-size: 12px;
+        color: black;
+      }
+
+      .coordinates-label {
+        font-weight: bold;
+      }
+
+      #coordinates-header {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="canvas">
+      <div id="rectangle1" class="rectangle"></div>
+      <div id="rectangle2" class="rectangle"></div>
+      <div id="coordinates-header">
+        // 사각형1: (xx1, yy1)-(xx2, yy2)<br />
+        // 사각형2: (x1, y1)-(x2, y2)<br /><br />
+        function isImpact(xx1, yy1, xx2, yy2, x1, y1, x2, y2) { <br />
+        &nbsp;&nbsp;if ( (x1 < xx1 && x2 < xx1) ||<br />
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(x1 > xx2 && x2 > xx2) ||<br />
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(y1 < yy1 && y2 < yy1) ||<br />
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(y1 > yy2 && y2 > yy2))<br />
+        &nbsp;&nbsp;&nbsp;{<br />
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return false; // 충돌하지 않는다.<br />
+        &nbsp;&nbsp;&nbsp;}<br />
+        &nbsp;&nbsp;&nbsp;return true; // 충돌한다<br />
+        }<br />
+      </div>
+      <div id="coordinates1" class="coordinates">
+        <span class="coordinates-label">Rectangle 1: </span>
+      </div>
+      <div id="coordinates2" class="coordinates">
+        <span class="coordinates-label">Rectangle 2: </span>
+      </div>
+    </div>
+
+    <script>
+      let canvas;
+      let ctx;
+      canvas = document.createElement("canvas");
+      ctx = canvas.getContext("2d");
+      canvas.width = 700;
+      canvas.height = 700;
+      document.body.appendChild(canvas);
+
+      class Rectangle {
+        constructor(id, x1, y1, x2, y2) {
+          this.id = id;
+          this.x1 = x1;
+          this.y1 = y1;
+          this.x2 = x2;
+          this.y2 = y2;
+          this.element = document.getElementById(id);
+          this.element.style.left = Math.min(x1, x2) + "px";
+          this.element.style.top = Math.min(y1, y2) + "px";
+          this.element.style.width = Math.abs(x2 - x1) + "px";
+          this.element.style.height = Math.abs(y2 - y1) + "px";
+          this.element.addEventListener("mousedown", this.startDrag.bind(this));
+          this.element.addEventListener("mousemove", this.drag.bind(this));
+          this.element.addEventListener("mouseup", this.endDrag.bind(this));
+          this.coordinates = document.getElementById(
+            `coordinates${id.slice(-1)}`
+          );
+          this.updateCoordinatesPosition();
+          this.updateCoordinates(); // 좌표값 초기화 시 호출
+        }
+
+        startDrag(e) {
+          this.isDragging = true;
+          this.offsetX = e.offsetX;
+          this.offsetY = e.offsetY;
+        }
+
+        drag(e) {
+          if (this.isDragging) {
+            var x = e.clientX - this.offsetX;
+            var y = e.clientY - this.offsetY;
+
+            var width = parseInt(this.element.style.width);
+            var height = parseInt(this.element.style.height);
+
+            this.x1 = x;
+            this.y1 = y;
+            this.x2 = x + width;
+            this.y2 = y + height;
+
+            this.element.style.left = Math.min(this.x1, this.x2) + "px";
+            this.element.style.top = Math.min(this.y1, this.y2) + "px";
+            this.element.style.width = Math.abs(this.x2 - this.x1) + "px";
+            this.element.style.height = Math.abs(this.y2 - this.y1) + "px";
+
+            this.updateCoordinates();
+            this.updateCoordinatesPosition();
+
+            // 함수 충돌if구문 호출
+            충돌if구문();
+          }
+        }
+        endDrag() {
+          this.isDragging = false;
+        }
+
+        updateCoordinates() {
+          const coordinatesLabel = document.querySelector(
+            `#coordinates${this.id.slice(-1)} .coordinates-label`
+          );
+          coordinatesLabel.textContent = `${this.id.slice(-1)}: (${this.x1}, ${
+            this.y1
+          }) - (${this.x2}, ${this.y2})`;
+        }
+
+        updateCoordinatesPosition() {
+          var left = Math.min(this.x1, this.x2);
+          var top = Math.max(this.y1, this.y2) + 5;
+          this.coordinates.style.left = left + "px";
+          this.coordinates.style.top = top + "px";
+        }
+      }
+
+      var Bullet, Enemy;
+
+      // 초기 사각형 생성
+      var rectangles = [
+        (Enemy = new Rectangle("rectangle1", 300, 400, 400, 450)),
+        (Bullet = new Rectangle("rectangle2", 300, 550, 400, 600)),
+      ];
+      
+      function 충돌if구문() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.font = "20px 고딕"; // 폰트 스타일과 크기 설정
+
+        const conditions = [
+          {
+            check: Bullet.x1 < Enemy.x1 && Bullet.x2 < Enemy.x1,
+            text: `(${Bullet.x1} < ${Enemy.x1} && ${Bullet.x2} < ${Enemy.x1}) ||`,
+            y: 20,
+          },
+          {
+            check: Bullet.x1 > Enemy.x2 && Bullet.x2 > Enemy.x2,
+            text: `(${Bullet.x1} > ${Enemy.x2} && ${Bullet.x2} > ${Enemy.x2}) ||`,
+            y: 50,
+          },
+          {
+            check: Bullet.y1 < Enemy.y1 && Bullet.y2 < Enemy.y1,
+            text: `(${Bullet.y1} < ${Enemy.y1} && ${Bullet.y2} < ${Enemy.y1}) ||`,
+            y: 80,
+          },
+          {
+            check: Bullet.y1 > Enemy.y2 && Bullet.y2 > Enemy.y2,
+            text: `(${Bullet.y1} > ${Enemy.y2} && ${Bullet.y2} > ${Enemy.y2})`,
+            y: 110,
+          },
+        ];
+
+        for (const condition of conditions) {
+          if (condition.check) {
+            ctx.fillStyle = "blue";
+            //  ctx.fillText("충돌하지 않는다", 350, 50);
+          } else {
+            ctx.fillStyle = "black";
+          }
+          ctx.fillText(condition.text, 20, condition.y);
+        }
+        if (
+          isImpact(
+            Bullet.x1,
+            Bullet.y1,
+            Bullet.x2,
+            Bullet.y2,
+            Enemy.x1,
+            Enemy.y1,
+            Enemy.x2,
+            Enemy.y2
+          )
+        ) {
+          ctx.fillStyle = "red";
+          ctx.fillText("충돌한다", 350, 50);
+        } else {
+          ctx.fillStyle = "blue";
+          ctx.fillText("충돌하지 않는다", 350, 50);
+        }
+      }
+
+      function isImpact(x1, y1, x2, y2, xx1, yy1, xx2, yy2) {
+        if (
+          (x1 < xx1 && x2 < xx1) ||
+          (x1 > xx2 && x2 > xx2) ||
+          (y1 < yy1 && y2 < yy1) ||
+          (y1 > yy2 && y2 > yy2)
+        ) {
+          return false;
+        }
+        return true;
+      }
+      
+      충돌if구문();
+    </script>
+  </body>
+</html>
